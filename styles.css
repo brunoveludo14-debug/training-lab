@@ -1625,3 +1625,78 @@ html, body {
   }
 }
 
+/* Premium Pitch turf patterns and floodlights styling */
+#fe-pitch-wrap {
+  position: relative;
+  height: 100%;
+  aspect-ratio: 68/52.5;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  /* Turf green stripes */
+  background: repeating-linear-gradient(
+    90deg,
+    #0f2c1e 0px,
+    #0f2c1e 40px,
+    #0b2317 40px,
+    #0b2317 80px
+  ) !important;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 40px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Stadium floodlights overlay */
+#fe-pitch-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background: 
+    radial-gradient(circle at 10% 10%, rgba(255,255,255,0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 10%, rgba(255,255,255,0.08) 0%, transparent 40%),
+    radial-gradient(circle at 50% 100%, rgba(255,255,255,0.05) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, transparent 40%, rgba(0,0,0,0.35) 100%);
+}
+
+.lib-card-diagram-container svg {
+  background: repeating-linear-gradient(
+    90deg,
+    #0f2c1e 0px,
+    #0f2c1e 8%,
+    #0b2317 8%,
+    #0b2317 16%
+  ) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.exercise-item-diagram-container svg {
+  background: repeating-linear-gradient(
+    90deg,
+    #0f2c1e 0px,
+    #0f2c1e 8%,
+    #0b2317 8%,
+    #0b2317 16%
+  ) !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Objects micro-interactions */
+.fe-pitch-area .pl:active, .fe-pitch-area .fe-pitch-items div:active {
+  cursor: grabbing !important;
+  transform: translate(-50%, -50%) scale(1.18) !important;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.6), 0 0 16px rgba(57,224,122,0.4) !important;
+  z-index: 50 !important;
+}
+
+/* Sidebar elements interactive hover state */
+.fe-objects-grid div:hover {
+  border-color: rgba(57,224,122,0.3) !important;
+  background: var(--s3) !important;
+  transform: translateY(-1px);
+}
+
+
