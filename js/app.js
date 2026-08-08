@@ -24,6 +24,14 @@ let _lastFocusedEl = null; // element to restore focus to when a modal closes
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((err) => {
+      console.warn('Service Worker registration failed:', err);
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   bindNavigation();
   bindSessionsView();
