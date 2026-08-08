@@ -5,7 +5,9 @@
   "description": "Training Lab — static web app for football training management.",
   "type": "commonjs",
   "scripts": {
-    "test": "node tests/smoke.js"
+    "test": "node tests/smoke.js && node tests/e2e-ui.js"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "playwright": "^1.62.1"
+  }
 }
