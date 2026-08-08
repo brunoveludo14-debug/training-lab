@@ -20,6 +20,7 @@ let showingSessionDetail = false;
 let libFilter = 'all';
 let libSearch = '';
 let _tempNewExerciseDiagram = null;
+let _lastFocusedEl = null; // element to restore focus to when a modal closes
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
 
@@ -139,7 +140,7 @@ function renderSessionsList() {
   if (sessions.length === 0) {
     gridEl.innerHTML = `
       <div class="sessions-empty">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
           <rect x="9" y="3" width="6" height="4" rx="2"/>
           <line x1="9" y1="12" x2="15" y2="12"/>
@@ -156,28 +157,28 @@ function renderSessionsList() {
     const dateStr = s.date ? new Date(s.date + 'T00:00:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' }) : '';
 
     return `
-      <div class="card session-card int-${s.intensity}" data-session-id="${s.id}">
+      <div class="card session-card int-${s.intensity}" data-session-id="${s.id}" tabindex="0" role="button" aria-label="Abrir treino ${s.name}">
         <div class="session-head">
           <div>
             <div class="session-name">${s.name}</div>
             <div class="session-date">${dateStr}</div>
           </div>
           <div style="display:flex;gap:4px;">
-            <button class="ex-btn" data-action="duplicate" data-id="${s.id}" title="Duplicar">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <button class="ex-btn" data-action="duplicate" data-id="${s.id}" title="Duplicar" aria-label="Duplicar treino ${s.name}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             </button>
-            <button class="ex-btn del" data-action="delete-session" data-id="${s.id}" title="Eliminar">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            <button class="ex-btn del" data-action="delete-session" data-id="${s.id}" title="Eliminar" aria-label="Eliminar treino ${s.name}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
             </button>
           </div>
         </div>
         <div class="session-meta">
           <span class="session-stat">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             ${dur} min
           </span>
           <span class="session-stat">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/></svg>
             ${count} exercícios
           </span>
           <span class="session-badge badge-${s.intensity === 'low' ? 'green' : s.intensity === 'high' ? 'red' : 'yellow'}">${s.intensity === 'low' ? 'Baixa' : s.intensity === 'high' ? 'Alta' : 'Média'}</span>
@@ -191,6 +192,14 @@ function renderSessionsList() {
       if (e.target.closest('[data-action]')) return;
       const sid = card.dataset.sessionId;
       openSessionDetail(sid);
+    });
+    // Keyboard support (Enter/Space) since these cards act as buttons
+    card.addEventListener('keydown', (e) => {
+      if (e.target.closest('[data-action]')) return;
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openSessionDetail(card.dataset.sessionId);
+      }
     });
   });
 
@@ -245,8 +254,8 @@ function renderSessionDetail() {
       const diagramSVG = getDiagramThumbnailSVG(ex.diagram);
       return `
         <div class="exercise-item" draggable="true" data-idx="${idx}" data-instance="${ex.instanceId}">
-          <div class="ex-drag-handle"><span></span><span></span><span></span></div>
-          <div class="exercise-item-diagram-container" data-action="draw-exercise" data-instance="${ex.instanceId}" title="Desenhar / Editar Desenho" style="cursor:pointer;">
+          <div class="ex-drag-handle" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div class="exercise-item-diagram-container" data-action="draw-exercise" data-instance="${ex.instanceId}" title="Desenhar / Editar Desenho" role="button" tabindex="0" aria-label="Desenhar ou editar diagrama de ${ex.name}" style="cursor:pointer;">
             ${diagramSVG}
           </div>
           <div class="ex-info">
@@ -260,9 +269,9 @@ function renderSessionDetail() {
             <span class="ex-timing-chip" style="color:var(--t1);">${totalMin}min</span>
           </div>
           <div class="ex-actions">
-            <button class="ex-btn" data-action="draw-exercise" data-instance="${ex.instanceId}" title="Desenhar / Editar Desenho">✏️</button>
-            <button class="ex-btn del" data-action="remove-ex" data-instance="${ex.instanceId}" title="Remover">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <button class="ex-btn" data-action="draw-exercise" data-instance="${ex.instanceId}" title="Desenhar / Editar Desenho" aria-label="Desenhar ou editar diagrama de ${ex.name}">✏️</button>
+            <button class="ex-btn del" data-action="remove-ex" data-instance="${ex.instanceId}" title="Remover" aria-label="Remover ${ex.name} do treino">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
         </div>`;
@@ -281,24 +290,33 @@ function renderSessionDetail() {
     });
   });
 
-  // Bind draw exercise buttons
+  // Bind draw exercise buttons (both icon button and diagram thumbnail)
   listEl.querySelectorAll('[data-action="draw-exercise"]').forEach(el => {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
-      const instId = el.dataset.instance;
-      const ex = currentSession.exercises.find(x => x.instanceId === instId);
-      if (ex) {
-        openFieldEditor(ex, (updatedEx) => {
-          updateSession(currentSession);
-          renderSessionDetail();
-          showToast(`Desenho de "${updatedEx.name}" guardado!`);
-        });
+      openExerciseDrawing(el.dataset.instance);
+    });
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openExerciseDrawing(el.dataset.instance);
       }
     });
   });
 
   // Footer
   document.getElementById('sd-total').textContent = `Total: ${dur} min · ${currentSession.exercises.length} exercícios`;
+}
+
+function openExerciseDrawing(instId) {
+  const ex = currentSession.exercises.find(x => x.instanceId === instId);
+  if (ex) {
+    openFieldEditor(ex, (updatedEx) => {
+      updateSession(currentSession);
+      renderSessionDetail();
+      showToast(`Desenho de "${updatedEx.name}" guardado!`);
+    });
+  }
 }
 
 function bindExerciseDragDrop(container) {
@@ -374,15 +392,15 @@ function renderLibraryGrid() {
     const totalMin = getExerciseTotalDuration(ex);
     const diagramSVG = getDiagramThumbnailSVG(ex.diagram);
     return `
-      <div class="lib-card" data-exercise-id="${ex.id}">
+      <div class="lib-card" data-exercise-id="${ex.id}" tabindex="0" role="button" aria-label="Adicionar exercício ${ex.name} a um treino">
         <div class="lib-card-head">
-          <div class="lib-card-icon cat-${ex.category}">${cat.icon}</div>
+          <div class="lib-card-icon cat-${ex.category}" aria-hidden="true">${cat.icon}</div>
           <div>
             <div class="lib-card-title">${ex.name}</div>
             <div class="lib-card-cat">${cat.label}</div>
           </div>
         </div>
-        <div class="lib-card-diagram-container">
+        <div class="lib-card-diagram-container" aria-hidden="true">
           ${diagramSVG}
         </div>
         <div class="lib-card-desc" style="margin-top: 4px;">${ex.desc || ''}</div>
@@ -397,26 +415,34 @@ function renderLibraryGrid() {
 
   // Click to add to current session
   grid.querySelectorAll('.lib-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const exId = card.dataset.exerciseId;
-      const exercise = getAllExercises().find(e => e.id === exId);
-      if (!exercise) return;
-
-      if (currentSession) {
-        addExerciseToSession(currentSession, exercise);
-        currentSession = loadSessionById(currentSession.id);
-        showToast(`"${exercise.name}" adicionado ao treino`);
-        if (showingSessionDetail) {
-          switchView('treinos');
-          showingSessionDetail = true;
-          renderSessionsList();
-        }
-      } else {
-        // Show sessions to pick
-        openAddToSessionPicker(exercise);
+    card.addEventListener('click', () => handleLibCardActivate(card));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleLibCardActivate(card);
       }
     });
   });
+}
+
+function handleLibCardActivate(card) {
+  const exId = card.dataset.exerciseId;
+  const exercise = getAllExercises().find(e => e.id === exId);
+  if (!exercise) return;
+
+  if (currentSession) {
+    addExerciseToSession(currentSession, exercise);
+    currentSession = loadSessionById(currentSession.id);
+    showToast(`"${exercise.name}" adicionado ao treino`);
+    if (showingSessionDetail) {
+      switchView('treinos');
+      showingSessionDetail = true;
+      renderSessionsList();
+    }
+  } else {
+    // Show sessions to pick
+    openAddToSessionPicker(exercise);
+  }
 }
 
 function openAddToSessionPicker(exercise) {
@@ -439,20 +465,28 @@ function openAddToSessionPicker(exercise) {
   body.innerHTML = `
     <p style="font-size:12px;color:var(--t2);margin-bottom:8px;">Adicionar <strong>"${exercise.name}"</strong> a qual treino?</p>
     ${sessions.map(s => `
-      <div class="card session-card int-${s.intensity}" data-sid="${s.id}" style="cursor:pointer;margin-bottom:4px;">
+      <div class="card session-card int-${s.intensity}" data-sid="${s.id}" tabindex="0" role="button" aria-label="Adicionar a ${s.name}" style="cursor:pointer;margin-bottom:4px;">
         <div class="session-name">${s.name}</div>
         <div class="session-date">${s.date || ''}</div>
       </div>`).join('')}
   `;
 
+  function pickSession(sid) {
+    const session = loadSessionById(sid);
+    if (session) {
+      addExerciseToSession(session, exercise);
+      showToast(`"${exercise.name}" adicionado a "${session.name}"`);
+    }
+    closeModal('modal-picker');
+  }
+
   body.querySelectorAll('.session-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const session = loadSessionById(card.dataset.sid);
-      if (session) {
-        addExerciseToSession(session, exercise);
-        showToast(`"${exercise.name}" adicionado a "${session.name}"`);
+    card.addEventListener('click', () => pickSession(card.dataset.sid));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        pickSession(card.dataset.sid);
       }
-      closeModal('modal-picker');
     });
   });
 
@@ -512,6 +546,7 @@ function bindPlayersActions(container, sessionId) {
       const playerId = dot.dataset.player;
       const isPresent = togglePresence(sessionId, playerId);
       dot.className = `presence-dot ${isPresent ? 'present' : 'absent'}`;
+      dot.setAttribute('aria-pressed', String(isPresent));
     });
   });
 
@@ -654,6 +689,13 @@ function bindModals() {
     });
   });
 
+  // Escape key closes the currently open modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const openModalEl = document.querySelector('.modal-overlay.active');
+    if (openModalEl) closeModal(openModalEl.id);
+  });
+
   // New Session form
   document.getElementById('form-new-session').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -673,8 +715,12 @@ function bindModals() {
   document.querySelectorAll('#form-new-session .intensity-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      document.querySelectorAll('#form-new-session .intensity-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#form-new-session .intensity-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
     });
   });
 
@@ -707,7 +753,7 @@ function bindModals() {
       players: document.getElementById('input-ex-players').value,
       diagram: _tempNewExerciseDiagram,
     });
-    
+
     // Reset temporary states
     _tempNewExerciseDiagram = null;
     const drawBtn = document.getElementById('btn-draw-new-exercise');
@@ -736,20 +782,55 @@ function bindModals() {
   });
 }
 
+function getFocusableEls(container) {
+  return Array.from(container.querySelectorAll(
+    'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )).filter(el => el.offsetParent !== null);
+}
+
+function trapFocus(e) {
+  const modal = document.querySelector('.modal-overlay.active');
+  if (!modal || e.key !== 'Tab') return;
+
+  const focusable = getFocusableEls(modal);
+  if (focusable.length === 0) return;
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+}
+
 function openModal(id) {
   const el = document.getElementById(id);
   if (el) {
+    _lastFocusedEl = document.activeElement;
     el.classList.add('active');
+    document.addEventListener('keydown', trapFocus);
     // Focus first input
     setTimeout(() => {
-      const input = el.querySelector('input:not([type=hidden])');
+      const input = el.querySelector('input:not([type=hidden])') || getFocusableEls(el)[0];
       if (input) input.focus();
     }, 100);
   }
 }
 
 function closeModal(id) {
-  document.getElementById(id)?.classList.remove('active');
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('active');
+  document.removeEventListener('keydown', trapFocus);
+  // Restore focus to whatever triggered the modal, for keyboard users
+  if (_lastFocusedEl && typeof _lastFocusedEl.focus === 'function') {
+    _lastFocusedEl.focus();
+  }
+  _lastFocusedEl = null;
 }
 
 // ─── GLOBAL ACTIONS ────────────────────────────────────────────────────────────
@@ -781,6 +862,8 @@ function showToast(msg) {
     toast = document.createElement('div');
     toast.id = 'toast';
     toast.className = 'toast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
     document.body.appendChild(toast);
   }
 

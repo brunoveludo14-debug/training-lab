@@ -56,6 +56,25 @@
   --shadow-card: 0 2px 16px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
   --shadow-modal: 0 10px 40px rgba(0,0,0,.6), 0 2px 20px rgba(0,0,0,.4);
   --shadow-glow-green: 0 0 16px rgba(57,224,122,.25);
+
+  /* Turf pattern — used by field editor + diagram thumbnails (dedup) */
+  --turf-bg: repeating-linear-gradient(
+    90deg,
+    #0f2c1e 0px,
+    #0f2c1e 8%,
+    #0b2317 8%,
+    #0b2317 16%
+  );
+  --turf-bg-large: repeating-linear-gradient(
+    90deg,
+    #0f2c1e 0px,
+    #0f2c1e 40px,
+    #0b2317 40px,
+    #0b2317 80px
+  );
+
+  /* Focus ring for keyboard navigation */
+  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px rgba(57,224,122,.6);
 }
 
 *, *::before, *::after {
@@ -75,6 +94,37 @@ html, body {
   font-size: 13px;
   -webkit-font-smoothing: antialiased;
   letter-spacing: -0.01em;
+}
+
+/* ═══ ACCESSIBILITY: KEYBOARD FOCUS ════════════════════════════════════ */
+/* Only show a visible ring for keyboard users (not mouse clicks) */
+
+:focus { outline: none; }
+
+.top-btn:focus-visible,
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.btn-danger:focus-visible,
+.btn-icon:focus-visible,
+.filter-btn:focus-visible,
+.ex-btn:focus-visible,
+.modal-close:focus-visible,
+.sd-back:focus-visible,
+.intensity-btn:focus-visible,
+.lib-card:focus-visible,
+.session-card:focus-visible,
+.presence-dot:focus-visible,
+.load-chip:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.form-input:focus-visible,
+.form-select:focus-visible,
+.form-textarea:focus-visible,
+.search-input:focus-visible {
+  outline: none;
+  border-color: rgba(57,224,122,.5);
+  box-shadow: var(--focus-ring);
 }
 
 /* ═══ APP LAYOUT ═══════════════════════════════════════════════════════ */
@@ -1524,6 +1574,21 @@ html, body {
 
 /* ═══ RESPONSIVE ═══════════════════════════════════════════════════════ */
 
+@media (max-width: 900px) {
+  .fe-container {
+    flex-direction: column !important;
+  }
+  .fe-sidebar {
+    width: 100% !important;
+    height: 220px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--b1) !important;
+  }
+  .fe-pitch-area {
+    padding: 10px !important;
+  }
+}
+
 @media (max-width: 768px) {
   .topbar-nav { overflow-x: auto; }
   .lib-grid { grid-template-columns: 1fr; }
@@ -1609,22 +1674,6 @@ html, body {
   justify-content: center;
 }
 
-/* Fullscreen Editor Responsiveness */
-@media (max-width: 900px) {
-  .fe-container {
-    flex-direction: column !important;
-  }
-  .fe-sidebar {
-    width: 100% !important;
-    height: 220px !important;
-    border-right: none !important;
-    border-bottom: 1px solid var(--b1) !important;
-  }
-  .fe-pitch-area {
-    padding: 10px !important;
-  }
-}
-
 /* Premium Pitch turf patterns and floodlights styling */
 #fe-pitch-wrap {
   position: relative;
@@ -1634,14 +1683,8 @@ html, body {
   max-height: 100%;
   border-radius: 14px;
   overflow: hidden;
-  /* Turf green stripes */
-  background: repeating-linear-gradient(
-    90deg,
-    #0f2c1e 0px,
-    #0f2c1e 40px,
-    #0b2317 40px,
-    #0b2317 80px
-  ) !important;
+  /* Turf green stripes — shared variable, see :root */
+  background: var(--turf-bg-large) !important;
   box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 40px rgba(0,0,0,0.4);
   border: 1px solid rgba(255,255,255,0.08);
 }
@@ -1661,25 +1704,13 @@ html, body {
 }
 
 .lib-card-diagram-container svg {
-  background: repeating-linear-gradient(
-    90deg,
-    #0f2c1e 0px,
-    #0f2c1e 8%,
-    #0b2317 8%,
-    #0b2317 16%
-  ) !important;
+  background: var(--turf-bg) !important;
   box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   border: 1px solid rgba(255,255,255,0.05);
 }
 
 .exercise-item-diagram-container svg {
-  background: repeating-linear-gradient(
-    90deg,
-    #0f2c1e 0px,
-    #0f2c1e 8%,
-    #0b2317 8%,
-    #0b2317 16%
-  ) !important;
+  background: var(--turf-bg) !important;
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
   border: 1px solid rgba(255,255,255,0.05);
 }
@@ -1698,5 +1729,3 @@ html, body {
   background: var(--s3) !important;
   transform: translateY(-1px);
 }
-
-

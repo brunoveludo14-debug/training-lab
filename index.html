@@ -4,10 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Training Lab</title>
-
 <!-- SEO -->
 <meta name="description" content="Planeia e gere treinos de futebol — exercícios, cronómetro e calendário semanal">
-
 <!-- PWA -->
 <meta name="application-name" content="Training Lab">
 <meta name="theme-color" content="#080d14">
@@ -17,355 +15,326 @@
 <meta name="apple-mobile-web-app-title" content="Training Lab">
 <meta name="msapplication-TileColor" content="#080d14">
 <meta name="msapplication-tap-highlight" content="no">
-
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png">
-
 <!-- Fonts (non-blocking) -->
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-      media="print" onload="this.media='all'">
+href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+media="print" onload="this.media='all'">
 <noscript>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 </noscript>
-
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
 <div id="app" role="application" aria-label="Training Lab">
-
 <!-- ═══ TOPBAR ═══════════════════════════════════════════════════════════ -->
 <header id="topbar" role="banner">
-  <div class="logo" aria-hidden="true">
-    <div class="logo-icon">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-        <line x1="4" y1="22" x2="4" y2="15"/>
-      </svg>
-    </div>
-    <span class="logo-name">Training Lab</span>
-  </div>
-  <div class="vsep" aria-hidden="true"></div>
-
-  <nav role="navigation" aria-label="Vistas">
-    <button class="top-btn active" data-v="treinos" aria-pressed="true">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
-      Treinos
-    </button>
-    <button class="top-btn" data-v="biblioteca" aria-pressed="false">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-      Biblioteca
-    </button>
-    <button class="top-btn" data-v="calendario" aria-pressed="false">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Calendário
-    </button>
-    <button class="top-btn" data-v="plantel" aria-pressed="false">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Plantel
-    </button>
-  </nav>
-
-  <div class="tr">
-    <button class="btn-icon" id="btn-export-json" title="Exportar backup JSON">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    </button>
-    <button class="btn-icon" id="btn-import-json" title="Importar backup JSON">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-    </button>
-  </div>
+<div class="logo" aria-hidden="true">
+<div class="logo-icon">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+<line x1="4" y1="22" x2="4" y2="15"/>
+</svg>
+</div>
+<span class="logo-name">Training Lab</span>
+</div>
+<div class="vsep" aria-hidden="true"></div>
+<nav role="navigation" aria-label="Vistas">
+<button class="top-btn active" data-v="treinos" aria-pressed="true">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
+Treinos
+</button>
+<button class="top-btn" data-v="biblioteca" aria-pressed="false">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+Biblioteca
+</button>
+<button class="top-btn" data-v="calendario" aria-pressed="false">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+Calendário
+</button>
+<button class="top-btn" data-v="plantel" aria-pressed="false">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+Plantel
+</button>
+</nav>
+<div class="tr">
+<button class="btn-icon" id="btn-export-json" title="Exportar backup JSON" aria-label="Exportar backup JSON">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+</button>
+<button class="btn-icon" id="btn-import-json" title="Importar backup JSON" aria-label="Importar backup JSON">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+</button>
+</div>
 </header>
-
 <!-- ═══ TREINOS VIEW ════════════════════════════════════════════════════ -->
 <div id="view-treinos" class="view active" role="region" aria-label="Treinos">
-  <div id="sessions-content">
-    <!-- Sessions list (toggles with session detail) -->
-    <div id="sessions-list" style="display:flex;flex-direction:column;flex:1;min-height:0;">
-      <div class="view-header">
-        <h1 class="view-title" style="color:var(--tab-treinos);">Treinos</h1>
-        <div class="view-actions">
-          <button class="btn-primary" id="btn-new-session">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Novo Treino
-          </button>
-        </div>
-      </div>
-
-      <div class="stats-row" id="sessions-stats"></div>
-
-      <div class="sessions-grid" id="sessions-grid" style="margin-top:8px;"></div>
-    </div>
-
-    <!-- Session detail (hidden by default) -->
-    <div class="session-detail" id="session-detail">
-      <div class="sd-header">
-        <button class="sd-back" id="sd-back" title="Voltar">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <div class="sd-title-group">
-          <div class="sd-title" id="sd-title">Treino</div>
-          <div class="sd-subtitle" id="sd-subtitle"></div>
-        </div>
-        <div class="view-actions">
-          <button class="btn-icon" id="sd-calendar" title="Adicionar ao calendário">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          </button>
-          <button class="btn-icon" id="sd-share" title="Partilhar treino">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          </button>
-          <button class="btn-icon" id="sd-print" title="Imprimir / PDF">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-          </button>
-          <button class="btn-primary" id="sd-start-timer">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Iniciar
-          </button>
-        </div>
-      </div>
-
-      <div class="sd-exercises" id="sd-exercises"></div>
-
-      <div class="sd-footer">
-        <span class="sd-total" id="sd-total">Total: 0 min</span>
-        <button class="btn-secondary" id="sd-add-exercise">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          + Exercício
-        </button>
-      </div>
-    </div>
-  </div>
+<div id="sessions-content">
+<!-- Sessions list (toggles with session detail) -->
+<div id="sessions-list" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+<div class="view-header">
+<h1 class="view-title" style="color:var(--tab-treinos);">Treinos</h1>
+<div class="view-actions">
+<button class="btn-primary" id="btn-new-session">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+Novo Treino
+</button>
 </div>
-
+</div>
+<div class="stats-row" id="sessions-stats"></div>
+<div class="sessions-grid" id="sessions-grid" style="margin-top:8px;"></div>
+</div>
+<!-- Session detail (hidden by default) -->
+<div class="session-detail" id="session-detail">
+<div class="sd-header">
+<button class="sd-back" id="sd-back" title="Voltar" aria-label="Voltar à lista de treinos">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+</button>
+<div class="sd-title-group">
+<div class="sd-title" id="sd-title">Treino</div>
+<div class="sd-subtitle" id="sd-subtitle"></div>
+</div>
+<div class="view-actions">
+<button class="btn-icon" id="sd-calendar" title="Adicionar ao calendário" aria-label="Adicionar ao calendário">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+</button>
+<button class="btn-icon" id="sd-share" title="Partilhar treino" aria-label="Partilhar treino">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+</button>
+<button class="btn-icon" id="sd-print" title="Imprimir / PDF" aria-label="Imprimir ou exportar em PDF">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+</button>
+<button class="btn-primary" id="sd-start-timer">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+Iniciar
+</button>
+</div>
+</div>
+<div class="sd-exercises" id="sd-exercises"></div>
+<div class="sd-footer">
+<span class="sd-total" id="sd-total">Total: 0 min</span>
+<button class="btn-secondary" id="sd-add-exercise">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
++ Exercício
+</button>
+</div>
+</div>
+</div>
+</div>
 <!-- ═══ BIBLIOTECA VIEW ═════════════════════════════════════════════════ -->
 <div id="view-biblioteca" class="view" role="region" aria-label="Biblioteca de Exercícios">
-  <div class="view-header">
-    <h1 class="view-title" style="color:var(--tab-biblioteca);">Biblioteca</h1>
-    <div class="view-actions">
-      <button class="btn-primary" id="btn-new-exercise">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Novo Exercício
-      </button>
-    </div>
-  </div>
-
-  <div class="search-wrap">
-    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input class="search-input" id="lib-search-input" type="search" placeholder="Pesquisar exercícios…" aria-label="Pesquisar">
-  </div>
-
-  <div class="filter-bar" id="lib-filter-bar"></div>
-
-  <div class="lib-grid" id="lib-grid" style="padding-top:4px;overflow-y:auto;flex:1;min-height:0;"></div>
+<div class="view-header">
+<h1 class="view-title" style="color:var(--tab-biblioteca);">Biblioteca</h1>
+<div class="view-actions">
+<button class="btn-primary" id="btn-new-exercise">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+Novo Exercício
+</button>
 </div>
-
+</div>
+<div class="search-wrap">
+<svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+<input class="search-input" id="lib-search-input" type="search" placeholder="Pesquisar exercícios…" aria-label="Pesquisar exercícios">
+</div>
+<div class="filter-bar" id="lib-filter-bar"></div>
+<div class="lib-grid" id="lib-grid" style="padding-top:4px;overflow-y:auto;flex:1;min-height:0;"></div>
+</div>
 <!-- ═══ CALENDÁRIO VIEW ═════════════════════════════════════════════════ -->
 <div id="view-calendario" class="view" role="region" aria-label="Calendário">
-  <div class="view-header">
-    <h1 class="view-title" style="color:var(--tab-calendario);">Calendário</h1>
-  </div>
-  <div id="calendar-content" style="flex:1;min-height:0;display:flex;flex-direction:column;"></div>
+<div class="view-header">
+<h1 class="view-title" style="color:var(--tab-calendario);">Calendário</h1>
 </div>
-
+<div id="calendar-content" style="flex:1;min-height:0;display:flex;flex-direction:column;"></div>
+</div>
 <!-- ═══ PLANTEL VIEW ════════════════════════════════════════════════════ -->
 <div id="view-plantel" class="view" role="region" aria-label="Plantel">
-  <div class="view-header">
-    <h1 class="view-title" style="color:var(--tab-plantel);">Plantel</h1>
-    <div class="view-actions">
-      <button class="btn-primary" id="btn-add-player" style="background:linear-gradient(135deg,rgba(251,191,36,.2),rgba(251,191,36,.08));color:var(--yel);box-shadow:0 0 0 1px rgba(251,191,36,.2);">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        + Jogador
-      </button>
-    </div>
-  </div>
-
-  <div class="stats-row" id="plantel-stats"></div>
-
-  <div style="padding:8px 4px;">
-    <select class="form-select" id="attendance-session-select" style="width:100%;">
-      <option value="">— Visão geral —</option>
-    </select>
-  </div>
-
-  <div id="players-content" class="players-section" style="flex:1;min-height:0;overflow-y:auto;"></div>
+<div class="view-header">
+<h1 class="view-title" style="color:var(--tab-plantel);">Plantel</h1>
+<div class="view-actions">
+<button class="btn-primary" id="btn-add-player" style="background:linear-gradient(135deg,rgba(251,191,36,.2),rgba(251,191,36,.08));color:var(--yel);box-shadow:0 0 0 1px rgba(251,191,36,.2);">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
++ Jogador
+</button>
 </div>
-
+</div>
+<div class="stats-row" id="plantel-stats"></div>
+<div style="padding:8px 4px;">
+<select class="form-select" id="attendance-session-select" style="width:100%;" aria-label="Selecionar treino para presenças">
+<option value="">— Visão geral —</option>
+</select>
+</div>
+<div id="players-content" class="players-section" style="flex:1;min-height:0;overflow-y:auto;"></div>
+</div>
 </div><!-- /app -->
-
 <!-- ═══ NEW SESSION MODAL ═══════════════════════════════════════════════ -->
-<div id="modal-new-session" class="modal-overlay" role="dialog" aria-modal="true">
-  <div class="modal-panel">
-    <div class="modal-head">
-      <span class="modal-title">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
-        Novo Treino
-      </span>
-      <button class="modal-close" aria-label="Fechar">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <form id="form-new-session">
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label" for="input-session-name">Nome do Treino</label>
-          <input class="form-input" id="input-session-name" type="text" placeholder="Ex: Treino Tático Quarta" maxlength="60" required>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="input-session-date">Data</label>
-            <input class="form-input" id="input-session-date" type="date">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Intensidade</label>
-          <div class="intensity-selector">
-            <button type="button" class="intensity-btn" data-int="low">🟢 Baixa</button>
-            <button type="button" class="intensity-btn active" data-int="med">🟡 Média</button>
-            <button type="button" class="intensity-btn" data-int="high">🔴 Alta</button>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="input-session-notes">Notas (opcional)</label>
-          <textarea class="form-textarea" id="input-session-notes" placeholder="Observações para este treino…" rows="2"></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="submit" class="btn-primary" style="width:100%;">Criar Treino</button>
-      </div>
-    </form>
-  </div>
+<div id="modal-new-session" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-new-session-title">
+<div class="modal-panel">
+<div class="modal-head">
+<span class="modal-title" id="modal-new-session-title">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
+Novo Treino
+</span>
+<button class="modal-close" aria-label="Fechar">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
 </div>
-
+<form id="form-new-session">
+<div class="modal-body">
+<div class="form-group">
+<label class="form-label" for="input-session-name">Nome do Treino</label>
+<input class="form-input" id="input-session-name" type="text" placeholder="Ex: Treino Tático Quarta" maxlength="60" required>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label class="form-label" for="input-session-date">Data</label>
+<input class="form-input" id="input-session-date" type="date" required>
+</div>
+</div>
+<div class="form-group">
+<label class="form-label" id="intensity-label-new">Intensidade</label>
+<div class="intensity-selector" role="radiogroup" aria-labelledby="intensity-label-new">
+<button type="button" class="intensity-btn" data-int="low" role="radio" aria-checked="false">🟢 Baixa</button>
+<button type="button" class="intensity-btn active" data-int="med" role="radio" aria-checked="true">🟡 Média</button>
+<button type="button" class="intensity-btn" data-int="high" role="radio" aria-checked="false">🔴 Alta</button>
+</div>
+</div>
+<div class="form-group">
+<label class="form-label" for="input-session-notes">Notas (opcional)</label>
+<textarea class="form-textarea" id="input-session-notes" placeholder="Observações para este treino…" rows="2"></textarea>
+</div>
+</div>
+<div class="modal-footer">
+<button type="submit" class="btn-primary" style="width:100%;">Criar Treino</button>
+</div>
+</form>
+</div>
+</div>
 <!-- ═══ NEW EXERCISE MODAL ══════════════════════════════════════════════ -->
-<div id="modal-new-exercise" class="modal-overlay" role="dialog" aria-modal="true">
-  <div class="modal-panel">
-    <div class="modal-head">
-      <span class="modal-title">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blu)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        Novo Exercício
-      </span>
-      <button class="modal-close" aria-label="Fechar">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <form id="form-new-exercise">
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label" for="input-ex-name">Nome</label>
-          <input class="form-input" id="input-ex-name" type="text" placeholder="Nome do exercício" maxlength="60" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="input-ex-category">Categoria</label>
-          <select class="form-select" id="input-ex-category">
-            <option value="aquecimento">🔥 Aquecimento</option>
-            <option value="posse">⚽ Posse de Bola</option>
-            <option value="finalizacao">🎯 Finalização</option>
-            <option value="fisico">🏃 Físico</option>
-            <option value="tatico">🧠 Tático</option>
-            <option value="retorno">🧊 Retorno à Calma</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="input-ex-desc">Descrição</label>
-          <textarea class="form-textarea" id="input-ex-desc" placeholder="Descreve o exercício…" rows="3"></textarea>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="input-ex-duration">Duração (min)</label>
-            <input class="form-input" id="input-ex-duration" type="number" min="1" max="120" value="10">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="input-ex-sets">Séries</label>
-            <input class="form-input" id="input-ex-sets" type="number" min="1" max="20" value="1">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="input-ex-rest">Pausa (min)</label>
-            <input class="form-input" id="input-ex-rest" type="number" min="0" max="30" value="0">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="input-ex-players">Nº Jogadores</label>
-          <input class="form-input" id="input-ex-players" type="text" placeholder="Ex: 8-12, Todos">
-        </div>
-      </div>
-      <div class="modal-footer" style="display:flex;flex-direction:column;gap:6px;">
-        <button type="button" class="btn-secondary" id="btn-draw-new-exercise" style="justify-content:center;">✏️ Desenhar Exercício (Opcional)</button>
-        <button type="submit" class="btn-primary" style="justify-content:center;width:100%;">Criar Exercício</button>
-      </div>
-    </form>
-  </div>
+<div id="modal-new-exercise" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-new-exercise-title">
+<div class="modal-panel">
+<div class="modal-head">
+<span class="modal-title" id="modal-new-exercise-title">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blu)" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+Novo Exercício
+</span>
+<button class="modal-close" aria-label="Fechar">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
 </div>
-
+<form id="form-new-exercise">
+<div class="modal-body">
+<div class="form-group">
+<label class="form-label" for="input-ex-name">Nome</label>
+<input class="form-input" id="input-ex-name" type="text" placeholder="Nome do exercício" maxlength="60" required>
+</div>
+<div class="form-group">
+<label class="form-label" for="input-ex-category">Categoria</label>
+<select class="form-select" id="input-ex-category">
+<option value="aquecimento">🔥 Aquecimento</option>
+<option value="posse">⚽ Posse de Bola</option>
+<option value="finalizacao">🎯 Finalização</option>
+<option value="fisico">🏃 Físico</option>
+<option value="tatico">🧠 Tático</option>
+<option value="retorno">🧊 Retorno à Calma</option>
+</select>
+</div>
+<div class="form-group">
+<label class="form-label" for="input-ex-desc">Descrição</label>
+<textarea class="form-textarea" id="input-ex-desc" placeholder="Descreve o exercício…" rows="3"></textarea>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label class="form-label" for="input-ex-duration">Duração (min)</label>
+<input class="form-input" id="input-ex-duration" type="number" min="1" max="120" value="10">
+</div>
+<div class="form-group">
+<label class="form-label" for="input-ex-sets">Séries</label>
+<input class="form-input" id="input-ex-sets" type="number" min="1" max="20" value="1">
+</div>
+<div class="form-group">
+<label class="form-label" for="input-ex-rest">Pausa (min)</label>
+<input class="form-input" id="input-ex-rest" type="number" min="0" max="30" value="0">
+</div>
+</div>
+<div class="form-group">
+<label class="form-label" for="input-ex-players">Nº Jogadores</label>
+<input class="form-input" id="input-ex-players" type="text" placeholder="Ex: 8-12, Todos">
+</div>
+</div>
+<div class="modal-footer" style="display:flex;flex-direction:column;gap:6px;">
+<button type="button" class="btn-secondary" id="btn-draw-new-exercise" style="justify-content:center;">✏️ Desenhar Exercício (Opcional)</button>
+<button type="submit" class="btn-primary" style="justify-content:center;width:100%;">Criar Exercício</button>
+</div>
+</form>
+</div>
+</div>
 <!-- ═══ ADD PLAYER MODAL ════════════════════════════════════════════════ -->
-<div id="modal-add-player" class="modal-overlay" role="dialog" aria-modal="true">
-  <div class="modal-panel">
-    <div class="modal-head">
-      <span class="modal-title">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--yel)" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-        Adicionar Jogador
-      </span>
-      <button class="modal-close" aria-label="Fechar">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <form id="form-add-player">
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label" for="input-player-name">Nome</label>
-          <input class="form-input" id="input-player-name" type="text" placeholder="Nome do jogador" maxlength="40" required>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="input-player-number">Número</label>
-            <input class="form-input" id="input-player-number" type="text" placeholder="Ex: 7" maxlength="3">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="input-player-position">Posição</label>
-            <select class="form-select" id="input-player-position">
-              <option value="">—</option>
-              <option value="GR">Guarda-Redes</option>
-              <option value="DC">Defesa Central</option>
-              <option value="DD">Defesa Direito</option>
-              <option value="DE">Defesa Esquerdo</option>
-              <option value="MC">Médio Centro</option>
-              <option value="MD">Médio Direito</option>
-              <option value="ME">Médio Esquerdo</option>
-              <option value="MOC">Médio Ofensivo</option>
-              <option value="MDC">Médio Defensivo</option>
-              <option value="EE">Extremo Esquerdo</option>
-              <option value="ED">Extremo Direito</option>
-              <option value="PL">Ponta de Lança</option>
-              <option value="SA">Segundo Avançado</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="submit" class="btn-primary" style="width:100%;">Adicionar</button>
-      </div>
-    </form>
-  </div>
+<div id="modal-add-player" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-add-player-title">
+<div class="modal-panel">
+<div class="modal-head">
+<span class="modal-title" id="modal-add-player-title">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--yel)" stroke-width="2" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+Adicionar Jogador
+</span>
+<button class="modal-close" aria-label="Fechar">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
 </div>
-
+<form id="form-add-player">
+<div class="modal-body">
+<div class="form-group">
+<label class="form-label" for="input-player-name">Nome</label>
+<input class="form-input" id="input-player-name" type="text" placeholder="Nome do jogador" maxlength="40" required>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label class="form-label" for="input-player-number">Número</label>
+<input class="form-input" id="input-player-number" type="text" placeholder="Ex: 7" maxlength="3">
+</div>
+<div class="form-group">
+<label class="form-label" for="input-player-position">Posição</label>
+<select class="form-select" id="input-player-position">
+<option value="">—</option>
+<option value="GR">Guarda-Redes</option>
+<option value="DC">Defesa Central</option>
+<option value="DD">Defesa Direito</option>
+<option value="DE">Defesa Esquerdo</option>
+<option value="MC">Médio Centro</option>
+<option value="MD">Médio Direito</option>
+<option value="ME">Médio Esquerdo</option>
+<option value="MOC">Médio Ofensivo</option>
+<option value="MDC">Médio Defensivo</option>
+<option value="EE">Extremo Esquerdo</option>
+<option value="ED">Extremo Direito</option>
+<option value="PL">Ponta de Lança</option>
+<option value="SA">Segundo Avançado</option>
+</select>
+</div>
+</div>
+</div>
+<div class="modal-footer">
+<button type="submit" class="btn-primary" style="width:100%;">Adicionar</button>
+</div>
+</form>
+</div>
+</div>
 <!-- ═══ SESSION PICKER MODAL ════════════════════════════════════════════ -->
-<div id="modal-picker" class="modal-overlay" role="dialog" aria-modal="true">
-  <div class="modal-panel">
-    <div class="modal-head">
-      <span class="modal-title">Escolher Treino</span>
-      <button class="modal-close" aria-label="Fechar">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="modal-body" id="picker-body"></div>
-  </div>
+<div id="modal-picker" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-picker-title">
+<div class="modal-panel">
+<div class="modal-head">
+<span class="modal-title" id="modal-picker-title">Escolher Treino</span>
+<button class="modal-close" aria-label="Fechar">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
 </div>
-
+<div class="modal-body" id="picker-body"></div>
+</div>
+</div>
 <!-- ═══ MAIN SCRIPT ═════════════════════════════════════════════════════ -->
 <script type="module" src="app.js"></script>
-
 </body>
 </html>
