@@ -1729,3 +1729,14 @@ html, body {
   background: var(--s3) !important;
   transform: translateY(-1px);
 }
+
+/* Calendar day add button hover state */
+.cal-day:hover .cal-add-btn {
+  opacity: 1 !important;
+}
+
+.cal-add-btn:hover {
+  color: var(--acc) !important;
+  background: rgba(255,255,255,0.06) !important;
+  border-radius: 4px;
+}

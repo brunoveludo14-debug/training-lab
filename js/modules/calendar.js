@@ -76,7 +76,11 @@ export function renderCalendar(container, onSessionClick) {
     html += `<div class="cal-day${isToday ? ' today' : ''}" data-date="${dateStr}"
                   ondragover="event.preventDefault(); this.classList.add('drag-over')"
                   ondragleave="this.classList.remove('drag-over')">`;
-    html += `<div class="cal-day-num">${day.getDate()}</div>`;
+    html += `
+      <div class="cal-day-header-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <span class="cal-day-num">${day.getDate()}</span>
+        <button class="cal-add-btn" data-date="${dateStr}" title="Agendar Treino" style="background:transparent; border:none; color:var(--t3); cursor:pointer; font-size:11px; opacity:0; transition:opacity .15s; padding:2px 6px;">＋</button>
+      </div>`;
 
     sessionIds.forEach(sid => {
       const session = loadSessionById(sid);
@@ -95,6 +99,17 @@ export function renderCalendar(container, onSessionClick) {
   html += `</div>`;
 
   container.innerHTML = html;
+
+  // Bind day hover button click events
+  container.querySelectorAll('.cal-add-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dateStr = btn.dataset.date;
+      if (window._onCalendarAddClick) {
+        window._onCalendarAddClick(dateStr);
+      }
+    });
+  });
 
   // ── Bind navigation ──
   container.querySelector('#cal-prev')?.addEventListener('click', () => {

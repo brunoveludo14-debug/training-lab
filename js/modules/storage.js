@@ -72,22 +72,6 @@ export function deleteCustomExercise(exerciseId) {
 export function getPlayers() {
   const players = read(KEYS.players);
   if (players) return players;
-
-  // Try to import from TaticalLab's playerfit data
-  try {
-    const tl = JSON.parse(localStorage.getItem('tl_playerfit') || '{}');
-    const imported = Object.entries(tl).map(([id, data]) => ({
-      id,
-      name: data.name || id,
-      number: data.number || '',
-      position: data.position || '',
-    }));
-    if (imported.length > 0) {
-      write(KEYS.players, imported);
-      return imported;
-    }
-  } catch {}
-
   return [];
 }
 

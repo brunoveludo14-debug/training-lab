@@ -277,3 +277,5 @@ export function cloneExercise(exercise) {
     instanceId: generateId(),
   };
 }
+
+export { deleteCustomExercise, saveCustomExercise };

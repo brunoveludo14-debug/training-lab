@@ -3,7 +3,7 @@
  */
 'use strict';
 
-import { CATEGORIES, getCategoryInfo, getAllExercises, filterByCategory, searchExercises, createExercise, getExerciseTotalDuration, cloneExercise } from './modules/exercises.js';
+import { CATEGORIES, getCategoryInfo, getAllExercises, filterByCategory, searchExercises, createExercise, getExerciseTotalDuration, cloneExercise, deleteCustomExercise, saveCustomExercise } from './modules/exercises.js';
 import { createSession, updateSession, removeSession, loadSessionById, listSessions, addExerciseToSession, removeExerciseFromSession, reorderExercises, getSessionDuration, getSessionExerciseCount, duplicateSession } from './modules/sessions.js';
 import { renderCalendar, assignSessionToDate } from './modules/calendar.js';
 import { startTimer } from './modules/timer.js';
@@ -20,6 +20,7 @@ let showingSessionDetail = false;
 let libFilter = 'all';
 let libSearch = '';
 let _tempNewExerciseDiagram = null;
+let editingExercise = null;
 let _lastFocusedEl = null; // element to restore focus to when a modal closes
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
@@ -53,6 +54,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clean URL
     window.history.replaceState({}, '', window.location.pathname);
   }
+
+  window._onCalendarAddClick = (dateStr) => {
+    openAssignSessionToDatePicker(dateStr);
+  };
 
   switchView('treinos');
 });
@@ -401,12 +406,18 @@ function renderLibraryGrid() {
     const diagramSVG = getDiagramThumbnailSVG(ex.diagram);
     return `
       <div class="lib-card" data-exercise-id="${ex.id}" tabindex="0" role="button" aria-label="Adicionar exercício ${ex.name} a um treino">
-        <div class="lib-card-head">
+        <div class="lib-card-head" style="position: relative;">
           <div class="lib-card-icon cat-${ex.category}" aria-hidden="true">${cat.icon}</div>
-          <div>
+          <div style="flex: 1; min-width: 0; padding-right: 32px;">
             <div class="lib-card-title">${ex.name}</div>
             <div class="lib-card-cat">${cat.label}</div>
           </div>
+          ${ex.custom ? `
+            <div style="position: absolute; right: 0; top: 0; display: flex; gap: 4px; z-index: 10;">
+              <button class="ex-btn" data-action="edit-custom-ex" data-id="${ex.id}" title="Editar" aria-label="Editar exercício" style="width:20px; height:20px; padding:0;">✏️</button>
+              <button class="ex-btn del" data-action="delete-custom-ex" data-id="${ex.id}" title="Eliminar" aria-label="Eliminar exercício" style="width:20px; height:20px; padding:0;">✕</button>
+            </div>
+          ` : ''}
         </div>
         <div class="lib-card-diagram-container" aria-hidden="true">
           ${diagramSVG}
@@ -423,11 +434,44 @@ function renderLibraryGrid() {
 
   // Click to add to current session
   grid.querySelectorAll('.lib-card').forEach(card => {
-    card.addEventListener('click', () => handleLibCardActivate(card));
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('[data-action="edit-custom-ex"]') || e.target.closest('[data-action="delete-custom-ex"]')) {
+        return;
+      }
+      handleLibCardActivate(card);
+    });
     card.addEventListener('keydown', (e) => {
+      if (e.target.closest('[data-action="edit-custom-ex"]') || e.target.closest('[data-action="delete-custom-ex"]')) {
+        return;
+      }
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         handleLibCardActivate(card);
+      }
+    });
+  });
+
+  // Bind edit custom exercise buttons
+  grid.querySelectorAll('[data-action="edit-custom-ex"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const exId = btn.dataset.id;
+      const exercise = getAllExercises().find(e => e.id === exId);
+      if (exercise) {
+        openEditExerciseModal(exercise);
+      }
+    });
+  });
+
+  // Bind delete custom exercise buttons
+  grid.querySelectorAll('[data-action="delete-custom-ex"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (confirm('Eliminar este exercício personalizado?')) {
+        const exId = btn.dataset.id;
+        deleteCustomExercise(exId);
+        showToast('Exercício eliminado');
+        renderLibrary();
       }
     });
   });
@@ -494,6 +538,50 @@ function openAddToSessionPicker(exercise) {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         pickSession(card.dataset.sid);
+      }
+    });
+  });
+
+  openModal('modal-picker');
+}
+
+function openAssignSessionToDatePicker(dateStr) {
+  const sessions = listSessions();
+  if (sessions.length === 0) {
+    if (confirm('Não tens treinos criados. Criar um novo treino para agendar?')) {
+      const session = createSession({ name: 'Novo Treino', date: dateStr });
+      assignSessionToDate(dateStr, session.id);
+      showToast('Treino criado e agendado');
+      renderCalendarView();
+    }
+    return;
+  }
+
+  const modal = document.getElementById('modal-picker');
+  const body = document.getElementById('picker-body');
+
+  body.innerHTML = `
+    <p style="font-size:12px;color:var(--t2);margin-bottom:8px;">Agendar qual treino para o dia <strong>${dateStr}</strong>?</p>
+    ${sessions.map(s => `
+      <div class="card session-card int-${s.intensity}" data-sid="${s.id}" tabindex="0" role="button" aria-label="Agendar ${s.name}" style="cursor:pointer;margin-bottom:4px;width:100%;">
+        <div class="session-name">${s.name}</div>
+        <div class="session-date">${s.date || ''}</div>
+      </div>`).join('')}
+  `;
+
+  function assignSession(sid) {
+    assignSessionToDate(dateStr, sid);
+    showToast('Treino agendado com sucesso!');
+    closeModal('modal-picker');
+    renderCalendarView();
+  }
+
+  body.querySelectorAll('.session-card').forEach(card => {
+    card.addEventListener('click', () => assignSession(card.dataset.sid));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        assignSession(card.dataset.sid);
       }
     });
   });
@@ -679,8 +767,43 @@ function bindPlayersView() {
   });
 }
 
-// ─── MODALS ────────────────────────────────────────────────────────────────────
+function openEditExerciseModal(exercise) {
+  editingExercise = exercise;
+  _tempNewExerciseDiagram = exercise.diagram;
 
+  // Pre-fill inputs
+  document.getElementById('input-ex-name').value = exercise.name || '';
+  document.getElementById('input-ex-category').value = exercise.category || 'aquecimento';
+  document.getElementById('input-ex-desc').value = exercise.desc || '';
+  document.getElementById('input-ex-duration').value = exercise.duration || 10;
+  document.getElementById('input-ex-sets').value = exercise.sets || 1;
+  document.getElementById('input-ex-rest').value = exercise.rest || 0;
+  document.getElementById('input-ex-players').value = exercise.players || '';
+
+  // Update modal title and submit button text
+  const modalTitle = document.querySelector('#modal-new-exercise .modal-title');
+  if (modalTitle) {
+    modalTitle.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blu)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Editar Exercício`;
+  }
+  const submitBtn = document.querySelector('#form-new-exercise button[type=submit]');
+  if (submitBtn) submitBtn.textContent = 'Guardar Exercício';
+
+  // Update drawing button status
+  const drawBtn = document.getElementById('btn-draw-new-exercise');
+  if (exercise.diagram) {
+    drawBtn.textContent = '✏️ Desenho Criado (Editar)';
+    drawBtn.style.borderColor = 'var(--acc)';
+    drawBtn.style.color = 'var(--acc)';
+  } else {
+    drawBtn.textContent = '✏️ Desenhar Exercício (Opcional)';
+    drawBtn.style.borderColor = '';
+    drawBtn.style.color = '';
+  }
+
+  openModal('modal-new-exercise');
+}
+
+// ─── MODALS ────────────────────────────────────────────────────────────────────
 function bindModals() {
   // Close buttons
   document.querySelectorAll('.modal-close').forEach(btn => {
@@ -751,7 +874,7 @@ function bindModals() {
   // New Exercise form
   document.getElementById('form-new-exercise').addEventListener('submit', (e) => {
     e.preventDefault();
-    const exercise = createExercise({
+    const data = {
       name: document.getElementById('input-ex-name').value.trim() || 'Novo Exercício',
       category: document.getElementById('input-ex-category').value,
       desc: document.getElementById('input-ex-desc').value,
@@ -760,18 +883,35 @@ function bindModals() {
       rest: parseInt(document.getElementById('input-ex-rest').value) || 0,
       players: document.getElementById('input-ex-players').value,
       diagram: _tempNewExerciseDiagram,
-    });
+    };
 
-    // Reset temporary states
+    if (editingExercise) {
+      Object.assign(editingExercise, data);
+      saveCustomExercise(editingExercise);
+      showToast(`Exercício "${data.name}" atualizado!`);
+    } else {
+      createExercise(data);
+      showToast(`Exercício "${data.name}" criado!`);
+    }
+    
+    // Reset temporary states & UI
     _tempNewExerciseDiagram = null;
+    editingExercise = null;
+    
     const drawBtn = document.getElementById('btn-draw-new-exercise');
     drawBtn.textContent = '✏️ Desenhar Exercício (Opcional)';
     drawBtn.style.borderColor = '';
     drawBtn.style.color = '';
 
+    const modalTitle = document.querySelector('#modal-new-exercise .modal-title');
+    if (modalTitle) {
+      modalTitle.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blu)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Novo Exercício`;
+    }
+    const submitBtn = document.querySelector('#form-new-exercise button[type=submit]');
+    if (submitBtn) submitBtn.textContent = 'Criar Exercício';
+
     closeModal('modal-new-exercise');
     document.getElementById('form-new-exercise').reset();
-    showToast(`Exercício "${exercise.name}" criado!`);
     renderLibrary();
   });
 
