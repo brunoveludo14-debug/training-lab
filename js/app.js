@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindPlayersView();
   bindModals();
   bindGlobalActions();
+  bindOfflineBadge();
 
   // Check for shared session in URL
   const shared = parseShareURL();
@@ -979,6 +980,27 @@ function closeModal(id) {
     _lastFocusedEl.focus();
   }
   _lastFocusedEl = null;
+}
+
+// ─── OFFLINE BADGE ─────────────────────────────────────────────────────────────
+
+function bindOfflineBadge() {
+  const badge = document.getElementById('offline-badge');
+  if (!badge) return;
+
+  function updateStatus() {
+    if (navigator.onLine) {
+      badge.classList.remove('active');
+    } else {
+      badge.classList.add('active');
+    }
+  }
+
+  window.addEventListener('online', updateStatus);
+  window.addEventListener('offline', updateStatus);
+  
+  // Initial check
+  updateStatus();
 }
 
 // ─── GLOBAL ACTIONS ────────────────────────────────────────────────────────────
