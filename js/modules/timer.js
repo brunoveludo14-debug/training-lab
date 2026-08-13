@@ -71,8 +71,7 @@ function ensureOverlay() {
         <span class="timer-label" id="timer-set-info" style="letter-spacing:.05em;">Série 1/1</span>
       </div>
 
-      <div class="timer-global-progress">
-        <div class="timer-global-fill" id="timer-global-fill" style="width:0%"></div>
+      <div class="timer-global-progress" id="timer-timeline">
       </div>
       <div class="timer-global-info">
         <span id="timer-ex-counter">Exercício 1/1</span>
@@ -136,10 +135,41 @@ function updateDisplay() {
 
   // Global progress
   const total = _state.session.exercises.length;
-  const globalPct = ((_state.exerciseIndex + progress / (ex.sets || 1)) / total) * 100;
-  document.getElementById('timer-global-fill').style.width = `${Math.min(100, globalPct)}%`;
   document.getElementById('timer-ex-counter').textContent = `Exercício ${_state.exerciseIndex + 1}/${total}`;
   document.getElementById('timer-elapsed').textContent = `${Math.floor(_state.elapsedSessionTime / 60)} min`;
+
+  _state.session.exercises.forEach((exItem, idx) => {
+    const fill = document.getElementById(`timer-chunk-fill-${idx}`);
+    if (!fill) return;
+    const parent = fill.parentElement;
+    
+    if (idx < _state.exerciseIndex) {
+      fill.style.width = '100%';
+      parent.classList.remove('active');
+      parent.classList.add('completed');
+    } else if (idx === _state.exerciseIndex) {
+      parent.classList.add('active');
+      parent.classList.remove('completed');
+      
+      const totalSecs = ((exItem.duration || 1) + (exItem.rest || 0)) * (exItem.sets || 1) * 60;
+      let passedSecs = 0;
+      for (let s = 1; s < _state.currentSet; s++) {
+        passedSecs += (exItem.duration || 1) * 60;
+        passedSecs += (exItem.rest || 0) * 60;
+      }
+      if (_state.inRest) {
+        passedSecs += (exItem.duration || 1) * 60;
+        passedSecs += ((exItem.rest || 0) * 60 - _state.secondsLeft);
+      } else {
+        passedSecs += ((exItem.duration || 1) * 60 - _state.secondsLeft);
+      }
+      const pct = (passedSecs / totalSecs) * 100;
+      fill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+    } else {
+      fill.style.width = '0%';
+      parent.classList.remove('active', 'completed');
+    }
+  });
 
   // Play button icon
   const playBtn = document.getElementById('timer-play');
@@ -227,7 +257,16 @@ function completeSession() {
   document.getElementById('timer-time').style.fontSize = '64px';
   document.getElementById('timer-label').textContent = 'CONCLUÍDO';
   document.getElementById('timer-label').style.color = 'var(--acc)';
-  document.getElementById('timer-global-fill').style.width = '100%';
+  document.getElementById('timer-label').style.color = 'var(--acc)';
+  
+  _state.session.exercises.forEach((_, idx) => {
+    const fill = document.getElementById(`timer-chunk-fill-${idx}`);
+    if (fill) {
+      fill.style.width = '100%';
+      fill.parentElement.classList.add('completed');
+      fill.parentElement.classList.remove('active');
+    }
+  });
 
   if (_onComplete) _onComplete();
 }
@@ -251,6 +290,33 @@ export function startTimer(session, onComplete) {
     inRest: false,
     currentSet: 1,
   };
+
+  const timeline = document.getElementById('timer-timeline');
+  timeline.innerHTML = '';
+  const sessionTotal = session.exercises.reduce((acc, ex) => acc + ((ex.duration || 1) + (ex.rest || 0)) * (ex.sets || 1) * 60, 0) || 1;
+  
+  session.exercises.forEach((ex, idx) => {
+    const chunkDur = ((ex.duration || 1) + (ex.rest || 0)) * (ex.sets || 1) * 60;
+    const chunkPct = (chunkDur / sessionTotal) * 100;
+    
+    const chunk = document.createElement('div');
+    chunk.className = 'timer-global-chunk';
+    chunk.style.flex = chunkPct;
+    chunk.title = ex.name;
+    chunk.addEventListener('click', () => {
+      _state.exerciseIndex = idx;
+      _state.currentSet = 1;
+      _state.inRest = false;
+      _state.secondsLeft = (_state.session.exercises[idx].duration || 1) * 60;
+      updateDisplay();
+    });
+    
+    const fill = document.createElement('div');
+    fill.className = 'timer-global-chunk-fill';
+    fill.id = `timer-chunk-fill-${idx}`;
+    chunk.appendChild(fill);
+    timeline.appendChild(chunk);
+  });
 
   document.getElementById('timer-time').style.fontSize = '';
   updateDisplay();

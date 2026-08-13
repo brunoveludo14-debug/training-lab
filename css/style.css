@@ -1019,17 +1019,41 @@ html, body {
 
 .timer-global-progress {
   width: 100%;
-  height: 4px;
-  background: var(--s3);
-  border-radius: 2px;
-  overflow: hidden;
+  height: 6px;
+  background: transparent;
+  display: flex;
+  gap: 3px;
 }
 
-.timer-global-fill {
+.timer-global-chunk {
   height: 100%;
-  background: linear-gradient(90deg, var(--acc), var(--blu));
+  background: var(--s3);
   border-radius: 2px;
-  transition: width .3s;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+.timer-global-chunk:hover {
+  background: var(--s4);
+  transform: scaleY(1.5);
+}
+
+.timer-global-chunk-fill {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  background: var(--t3);
+  width: 0%;
+  transition: width .1s linear;
+}
+
+.timer-global-chunk.completed .timer-global-chunk-fill {
+  background: var(--acc);
+}
+
+.timer-global-chunk.active .timer-global-chunk-fill {
+  background: var(--acc);
+  box-shadow: 0 0 10px rgba(0, 255, 128, 0.5);
 }
 
 .timer-global-info {
@@ -1792,4 +1816,86 @@ html, body {
 .offline-badge.active {
   transform: translateX(-50%) translateY(10px);
   opacity: 1;
+}
+
+/* ─── PRINT / EXPORT PDF ──────────────────────────────────────────────────────── */
+@media print {
+  body, html {
+    background: #fff !important;
+    color: #000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Esconder UI que não deve ser impressa */
+  #topbar, .offline-badge, .view-actions, .timer-overlay, #toast, .modal-overlay, #sessions-list,
+  .ex-drag-handle, .ex-actions, .sd-footer {
+    display: none !important;
+  }
+  
+  /* Mostrar apenas a vista atual do detalhe e fazê-la ocupar o ecrã inteiro */
+  #app, #view-treinos, #sessions-content, #session-detail {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Esconder outras vistas de topo */
+  #view-biblioteca, #view-calendario, #view-plantel {
+    display: none !important;
+  }
+  
+  .sd-header {
+    border-bottom: 2px solid #333 !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 20px !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+  }
+  
+  .sd-title {
+    color: #000 !important;
+    font-size: 24pt !important;
+  }
+  
+  .sd-subtitle {
+    color: #444 !important;
+  }
+  
+  /* Reset de estilos para os itens de exercícios para melhor leitura no papel */
+  .sd-exercises {
+    gap: 15px !important;
+    padding: 0 !important;
+  }
+  
+  .exercise-item {
+    break-inside: avoid;
+    border: 1px solid #ccc !important;
+    background: #fff !important;
+    color: #000 !important;
+    margin-bottom: 15px !important;
+    box-shadow: none !important;
+    padding: 10px !important;
+    display: flex !important;
+    gap: 15px !important;
+  }
+  
+  .ex-thumb {
+    border: 1px solid #ddd !important;
+    background: #f9f9f9 !important;
+  }
+  
+  .ex-name {
+    color: #000 !important;
+    font-weight: bold !important;
+  }
+  
+  .ex-category, .ex-meta {
+    color: #555 !important;
+  }
 }

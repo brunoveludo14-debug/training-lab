@@ -94,13 +94,18 @@ export function getTeamStats() {
 
   let totalPresences = 0;
   let totalPossible = 0;
+  let loadCounts = { low: 0, med: 0, high: 0 };
 
   players.forEach(p => {
     sessions.forEach(s => {
       const att = getSessionAttendance(s.id);
       if (att[p.id]) {
         totalPossible++;
-        if (att[p.id].present) totalPresences++;
+        if (att[p.id].present) {
+          totalPresences++;
+          const load = att[p.id].load || 'med';
+          loadCounts[load]++;
+        }
       }
     });
   });
@@ -109,6 +114,7 @@ export function getTeamStats() {
     totalPlayers: players.length,
     totalSessions: sessions.length,
     avgAttendance: totalPossible > 0 ? Math.round((totalPresences / totalPossible) * 100) : 0,
+    loadCounts
   };
 }
 
@@ -118,8 +124,53 @@ export function renderPlayersTable(container, sessionId) {
   const players = getAllPlayers();
   const att = sessionId ? getSessionAttendance(sessionId) : {};
 
+  let html = '';
+  
+  // Dashboard Analytics (Only in Overview Mode)
+  if (!sessionId) {
+    const ts = getTeamStats();
+    const totalLoads = ts.loadCounts.low + ts.loadCounts.med + ts.loadCounts.high || 1;
+    const pLow = Math.round((ts.loadCounts.low / totalLoads) * 100);
+    const pMed = Math.round((ts.loadCounts.med / totalLoads) * 100);
+    const pHigh = Math.round((ts.loadCounts.high / totalLoads) * 100);
+    
+    html += `
+    <div class="analytics-dashboard" style="margin: 0 4px 16px 4px; padding: 16px; background: var(--s2); border-radius: 12px; border: 1px solid var(--s3);">
+      <h3 style="font-size:14px; font-weight:600; color:var(--t1); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        Analytics Avançados
+      </h3>
+      
+      <div style="display:flex; gap:16px; flex-wrap:wrap;">
+        <!-- Card 1: Assiduidade Global -->
+        <div style="flex:1; min-width:200px; background:var(--s1); padding:12px; border-radius:8px; display:flex; flex-direction:column; justify-content:space-between;">
+          <span style="font-size:12px; color:var(--t3);">Assiduidade Global</span>
+          <div style="font-size:24px; font-weight:700; color:var(--t1); margin-top:4px;">${ts.avgAttendance}%</div>
+          <div style="width:100%; height:4px; background:var(--s3); border-radius:2px; margin-top:8px; overflow:hidden;">
+            <div style="height:100%; background:var(--acc); width:${ts.avgAttendance}%;"></div>
+          </div>
+        </div>
+        
+        <!-- Card 2: Distribuição de Cargas -->
+        <div style="flex:2; min-width:280px; background:var(--s1); padding:12px; border-radius:8px;">
+          <span style="font-size:12px; color:var(--t3);">Distribuição de Cargas de Treino (Workload)</span>
+          <div style="display:flex; height:24px; width:100%; background:var(--s3); border-radius:4px; overflow:hidden; margin-top:8px;">
+            <div style="height:100%; background:var(--grn); width:${pLow}%;" title="Baixa: ${ts.loadCounts.low}"></div>
+            <div style="height:100%; background:var(--yel); width:${pMed}%;" title="Média: ${ts.loadCounts.med}"></div>
+            <div style="height:100%; background:var(--red); width:${pHigh}%;" title="Alta: ${ts.loadCounts.high}"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--t3); margin-top:6px;">
+            <span style="color:var(--grn);">Baixa (${pLow}%)</span>
+            <span style="color:var(--yel);">Média (${pMed}%)</span>
+            <span style="color:var(--red);">Alta (${pHigh}%)</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
   if (players.length === 0) {
-    container.innerHTML = `
+    html += `
       <div class="sessions-empty">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -129,10 +180,11 @@ export function renderPlayersTable(container, sessionId) {
         </svg>
         <p>Ainda não adicionaste jogadores.<br>Clica em "+ Jogador" para começar.</p>
       </div>`;
+    container.innerHTML = html;
     return;
   }
 
-  let html = `<div class="players-table-wrap"><table class="players-table">
+  html += `<div class="players-table-wrap"><table class="players-table">
     <thead><tr>
       <th>Jogador</th>
       <th>Nº</th>
