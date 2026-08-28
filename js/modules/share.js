@@ -87,7 +87,28 @@ export function parseShareURL() {
 // ─── Print / PDF-like export ───────────────────────────────────────────────────
 
 export function printSession(session) {
-  // A impressão agora é gerida 100% por CSS @media print
-  // que transforma a vista atual do detalhe do treino numa página A4 elegante.
+  // A impressão é gerida por CSS @media print de alta fidelidade
+  // que transforma a vista de detalhe do treino num relatório A4 limpo.
   window.print();
+}
+
+export async function shareSessionNativeOrLink(session) {
+  const url = buildShareURL(session);
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: `${session.name} — Training Lab`,
+        text: `Treino: ${session.name} (${session.exercises.length} exercícios)`,
+        url: url,
+      });
+      return { shared: true };
+    } catch (err) {
+      if (err.name === 'AbortError') return { cancelled: true };
+    }
+  }
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(url);
+    return { copied: true, url };
+  }
+  return { prompt: true, url };
 }

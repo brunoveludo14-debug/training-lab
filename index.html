@@ -98,8 +98,11 @@ Novo Treino
 <button class="sd-back" id="sd-back" title="Voltar" aria-label="Voltar à lista de treinos">
 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
 </button>
-<div class="sd-title-group">
+<div class="sd-title-group" id="sd-title-group" style="cursor:pointer;" title="Editar informações do treino">
+<div style="display:flex;align-items:center;gap:8px;">
 <div class="sd-title" id="sd-title">Treino</div>
+<button class="ex-btn" id="sd-edit-meta" title="Editar informações do treino" aria-label="Editar informações do treino">✏️</button>
+</div>
 <div class="sd-subtitle" id="sd-subtitle"></div>
 </div>
 <div class="view-actions">
@@ -116,6 +119,19 @@ Novo Treino
 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
 Iniciar
 </button>
+</div>
+</div>
+<!-- Notes & Objectives workspace -->
+<div class="sd-notes-card" id="sd-notes-card">
+<div class="sd-notes-head">
+<span class="sd-notes-title">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+Objetivos & Observações da Sessão
+</span>
+<button class="btn-text-sm" id="sd-notes-btn-edit" aria-label="Editar notas do treino">✏️ Editar</button>
+</div>
+<div class="sd-notes-body" id="sd-notes-body">
+<p class="sd-notes-placeholder">Nenhuma observação registada. Clica para escrever os objetivos, materiais ou foco tático desta sessão…</p>
 </div>
 </div>
 <div class="sd-exercises" id="sd-exercises"></div>
@@ -336,6 +352,112 @@ Adicionar Jogador
 </button>
 </div>
 <div class="modal-body" id="picker-body"></div>
+</div>
+</div>
+<!-- ═══ EDIT SESSION MODAL ═══════════════════════════════════════════════ -->
+<div id="modal-edit-session" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-edit-session-title">
+<div class="modal-panel">
+<div class="modal-head">
+<span class="modal-title" id="modal-edit-session-title">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+Editar Treino
+</span>
+<button class="modal-close" aria-label="Fechar">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+</div>
+<form id="form-edit-session">
+<div class="modal-body">
+<div class="form-group">
+<label class="form-label" for="edit-input-session-name">Nome do Treino</label>
+<input class="form-input" id="edit-input-session-name" type="text" placeholder="Ex: Treino Tático Quarta" maxlength="60" required>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label class="form-label" for="edit-input-session-date">Data</label>
+<input class="form-input" id="edit-input-session-date" type="date" required>
+</div>
+</div>
+<div class="form-group">
+<label class="form-label" id="edit-intensity-label">Intensidade</label>
+<div class="intensity-selector" id="edit-intensity-selector" role="radiogroup" aria-labelledby="edit-intensity-label">
+<button type="button" class="intensity-btn" data-int="low" role="radio" aria-checked="false">🟢 Baixa</button>
+<button type="button" class="intensity-btn" data-int="med" role="radio" aria-checked="false">🟡 Média</button>
+<button type="button" class="intensity-btn" data-int="high" role="radio" aria-checked="false">🔴 Alta</button>
+</div>
+</div>
+<div class="form-group">
+<label class="form-label" for="edit-input-session-notes">Objetivos & Observações da Sessão</label>
+<textarea class="form-textarea" id="edit-input-session-notes" placeholder="Descreve o foco principal, materiais, dinâmicas e notas para esta sessão…" rows="4"></textarea>
+</div>
+</div>
+<div class="modal-footer">
+<button type="submit" class="btn-primary" style="width:100%;">Guardar Alterações</button>
+</div>
+</form>
+</div>
+</div>
+<!-- ═══ EDIT SESSION EXERCISE MODAL ═════════════════════════════════════ -->
+<div id="modal-edit-session-ex" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-edit-session-ex-title">
+<div class="modal-panel">
+<div class="modal-head">
+<span class="modal-title" id="modal-edit-session-ex-title">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blu)" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+Ajustar Exercício no Treino
+</span>
+<button class="modal-close" aria-label="Fechar">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+</div>
+<form id="form-edit-session-ex">
+<input type="hidden" id="edit-ex-instance-id">
+<div class="modal-body">
+<div class="form-group">
+<label class="form-label" for="edit-ex-name">Nome do Exercício</label>
+<input class="form-input" id="edit-ex-name" type="text" maxlength="60" required>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label class="form-label" for="edit-ex-duration">Duração (min)</label>
+<input class="form-input" id="edit-ex-duration" type="number" min="1" max="120" required>
+</div>
+<div class="form-group">
+<label class="form-label" for="edit-ex-sets">Séries</label>
+<input class="form-input" id="edit-ex-sets" type="number" min="1" max="20" required>
+</div>
+<div class="form-group">
+<label class="form-label" for="edit-ex-rest">Pausa (min)</label>
+<input class="form-input" id="edit-ex-rest" type="number" min="0" max="30" required>
+</div>
+</div>
+<div class="form-group">
+<label class="form-label" for="edit-ex-desc">Instruções / Foco do Exercício</label>
+<textarea class="form-textarea" id="edit-ex-desc" placeholder="Instruções específicas para a execução neste treino…" rows="3"></textarea>
+</div>
+</div>
+<div class="modal-footer" style="display:flex;gap:8px;">
+<button type="button" class="btn-secondary" id="btn-draw-session-ex" style="flex:1;justify-content:center;">✏️ Desenho Tático</button>
+<button type="submit" class="btn-primary" style="flex:1;justify-content:center;">Guardar</button>
+</div>
+</form>
+</div>
+</div>
+<!-- ═══ CONFIRMATION MODAL ══════════════════════════════════════════════ -->
+<div id="modal-confirm" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-confirm-title">
+<div class="modal-panel" style="max-width:380px;">
+<div class="modal-head">
+<span class="modal-title" id="modal-confirm-title">Confirmação</span>
+<button class="modal-close" aria-label="Fechar">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+</div>
+<div class="modal-body">
+<p id="modal-confirm-msg" style="font-size:13px;color:var(--t2);line-height:1.5;margin:0;">Tens a certeza que pretendes continuar?</p>
+</div>
+<div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end;">
+<button type="button" class="btn-secondary" id="modal-confirm-cancel">Cancelar</button>
+<button type="button" class="btn-primary" id="modal-confirm-ok" style="background:var(--red);color:#fff;box-shadow:none;">Confirmar</button>
+</div>
 </div>
 </div>
 <!-- ═══ MAIN SCRIPT ═════════════════════════════════════════════════════ -->

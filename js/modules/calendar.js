@@ -87,8 +87,9 @@ export function renderCalendar(container, onSessionClick) {
       if (session) {
         html += `<div class="cal-session-chip int-${session.intensity}" 
                       data-session-id="${sid}" data-date="${dateStr}"
-                      draggable="true" title="${session.name}">
-                   ${session.name}
+                      draggable="true" title="${session.name} (clicar para abrir, arrastar para mover)">
+                   <span class="cal-session-name">${session.name}</span>
+                   <button type="button" class="cal-unschedule-btn" data-action="unschedule" data-session-id="${sid}" data-date="${dateStr}" title="Desagendar deste dia" aria-label="Desagendar ${session.name}">×</button>
                  </div>`;
       }
     });
@@ -107,6 +108,20 @@ export function renderCalendar(container, onSessionClick) {
       const dateStr = btn.dataset.date;
       if (window._onCalendarAddClick) {
         window._onCalendarAddClick(dateStr);
+      }
+    });
+  });
+
+  // ── Bind unschedule button clicks ──
+  container.querySelectorAll('[data-action="unschedule"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const sid = btn.dataset.sessionId;
+      const dateStr = btn.dataset.date;
+      removeFromDate(dateStr, sid);
+      renderCalendar(container, onSessionClick);
+      if (window._showAppToast) {
+        window._showAppToast('Treino desagendado do dia');
       }
     });
   });
@@ -130,6 +145,7 @@ export function renderCalendar(container, onSessionClick) {
   // ── Bind session chip clicks ──
   container.querySelectorAll('.cal-session-chip').forEach(chip => {
     chip.addEventListener('click', (e) => {
+      if (e.target.closest('[data-action="unschedule"]')) return;
       e.stopPropagation();
       const sid = chip.dataset.sessionId;
       if (onSessionClick) onSessionClick(sid);

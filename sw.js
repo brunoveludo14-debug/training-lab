@@ -3,7 +3,7 @@
  * Offline caching and app shell.
  */
 
-const CACHE_NAME = 'training-lab-v1';
+const CACHE_NAME = 'training-lab-v1.3';
 const ASSETS = [
   './',
   './index.html',

@@ -4,13 +4,59 @@
 'use strict';
 
 import { CATEGORIES, getCategoryInfo, getAllExercises, filterByCategory, searchExercises, createExercise, getExerciseTotalDuration, cloneExercise, deleteCustomExercise, saveCustomExercise } from './modules/exercises.js';
-import { createSession, updateSession, removeSession, loadSessionById, listSessions, addExerciseToSession, removeExerciseFromSession, reorderExercises, getSessionDuration, getSessionExerciseCount, duplicateSession } from './modules/sessions.js';
+import { createSession, updateSession, removeSession, loadSessionById, listSessions, addExerciseToSession, removeExerciseFromSession, reorderExercises, updateExerciseInSession, getSessionDuration, getSessionExerciseCount, duplicateSession } from './modules/sessions.js';
 import { renderCalendar, assignSessionToDate } from './modules/calendar.js';
 import { startTimer } from './modules/timer.js';
 import { getAllPlayers, createPlayer, deletePlayer, togglePresence, setPlayerLoad, renderPlayersTable, getTeamStats, getAttendanceForSession } from './modules/players.js';
-import { exportJSON, importJSON, printSession, buildShareURL, parseShareURL } from './modules/share.js';
+import { exportJSON, importJSON, printSession, buildShareURL, parseShareURL, shareSessionNativeOrLink } from './modules/share.js';
 import { generateId, assignToDate } from './modules/storage.js';
 import { openFieldEditor, getDiagramThumbnailSVG } from './modules/field-editor.js';
+
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function confirmAction(message) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('modal-confirm');
+    if (!modal) {
+      return resolve(window.confirm(message));
+    }
+    const msgEl = document.getElementById('modal-confirm-msg');
+    const okBtn = document.getElementById('modal-confirm-ok');
+    const cancelBtn = document.getElementById('modal-confirm-cancel');
+
+    msgEl.textContent = message;
+    openModal('modal-confirm');
+
+    function cleanup(result) {
+      closeModal('modal-confirm');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      resolve(result);
+    }
+
+    function onOk(e) {
+      e.preventDefault();
+      cleanup(true);
+    }
+    function onCancel(e) {
+      e.preventDefault();
+      cleanup(false);
+    }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+  });
+}
 
 // ─── State ─────────────────────────────────────────────────────────────────────
 
@@ -218,9 +264,10 @@ function renderSessionsList() {
   });
 
   gridEl.querySelectorAll('[data-action="delete-session"]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      if (confirm('Eliminar este treino?')) {
+      const ok = await confirmAction('Tens a certeza que pretendes eliminar este treino?');
+      if (ok) {
         removeSession(btn.dataset.id);
         renderSessionsList();
         showToast('Treino eliminado');
@@ -252,7 +299,17 @@ function renderSessionDetail() {
   const dur = getSessionDuration(currentSession);
 
   document.getElementById('sd-title').textContent = currentSession.name;
-  document.getElementById('sd-subtitle').textContent = `${currentSession.date || ''} · ${dur} min · ${currentSession.exercises.length} exercícios`;
+  document.getElementById('sd-subtitle').textContent = `${currentSession.date || ''} · ${dur} min · ${currentSession.exercises.length} exercícios · Intensidade: ${currentSession.intensity === 'low' ? 'Baixa' : currentSession.intensity === 'high' ? 'Alta' : 'Média'}`;
+
+  // Render Notes & Objectives
+  const notesBodyEl = document.getElementById('sd-notes-body');
+  if (notesBodyEl) {
+    if (currentSession.notes && currentSession.notes.trim()) {
+      notesBodyEl.innerHTML = `<div class="sd-notes-text">${escapeHtml(currentSession.notes)}</div>`;
+    } else {
+      notesBodyEl.innerHTML = `<p class="sd-notes-placeholder">Nenhuma observação registada. Clica para escrever os objetivos, materiais ou foco tático desta sessão…</p>`;
+    }
+  }
 
   // Render exercises
   const listEl = document.getElementById('sd-exercises');
@@ -272,18 +329,19 @@ function renderSessionDetail() {
           <div class="exercise-item-diagram-container" data-action="draw-exercise" data-instance="${ex.instanceId}" title="Desenhar / Editar Desenho" role="button" tabindex="0" aria-label="Desenhar ou editar diagrama de ${ex.name}" style="cursor:pointer;">
             ${diagramSVG}
           </div>
-          <div class="ex-info">
-            <div class="ex-name">${ex.name}</div>
-            <div class="ex-desc">${ex.desc || ''}</div>
+          <div class="ex-info" data-action="edit-session-ex" data-instance="${ex.instanceId}" style="cursor:pointer;" title="Ajustar exercício neste treino">
+            <div class="ex-name">${escapeHtml(ex.name)}</div>
+            <div class="ex-desc">${escapeHtml(ex.desc || '')}</div>
           </div>
-          <div class="ex-timing">
-            <span class="ex-timing-chip">${ex.duration}min</span>
-            <span class="ex-timing-chip">${ex.sets || 1}x</span>
-            ${ex.rest ? `<span class="ex-timing-chip">${ex.rest}min ⏸</span>` : ''}
-            <span class="ex-timing-chip" style="color:var(--t1);">${totalMin}min</span>
+          <div class="ex-timing" data-action="edit-session-ex" data-instance="${ex.instanceId}" style="cursor:pointer;" title="Ajustar duração / séries / pausas">
+            <span class="ex-timing-chip" title="Duração">${ex.duration}min</span>
+            <span class="ex-timing-chip" title="Séries">${ex.sets || 1}x</span>
+            ${ex.rest ? `<span class="ex-timing-chip" title="Pausa">${ex.rest}min ⏸</span>` : ''}
+            <span class="ex-timing-chip" style="color:var(--t1);" title="Tempo total do bloco">${totalMin}min</span>
           </div>
           <div class="ex-actions">
-            <button class="ex-btn" data-action="draw-exercise" data-instance="${ex.instanceId}" title="Desenhar / Editar Desenho" aria-label="Desenhar ou editar diagrama de ${ex.name}">✏️</button>
+            <button class="ex-btn" data-action="draw-exercise" data-instance="${ex.instanceId}" title="Desenhar / Editar Diagrama" aria-label="Desenhar ou editar diagrama de ${ex.name}">🎨</button>
+            <button class="ex-btn" data-action="edit-session-ex" data-instance="${ex.instanceId}" title="Ajustar parâmetros do exercício" aria-label="Ajustar parâmetros de ${ex.name}">✏️</button>
             <button class="ex-btn del" data-action="remove-ex" data-instance="${ex.instanceId}" title="Remover" aria-label="Remover ${ex.name} do treino">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
@@ -297,10 +355,19 @@ function renderSessionDetail() {
 
   // Bind remove exercise buttons
   listEl.querySelectorAll('[data-action="remove-ex"]').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
       removeExerciseFromSession(currentSession, btn.dataset.instance);
       currentSession = loadSessionById(currentSession.id);
       renderSessionDetail();
+    });
+  });
+
+  // Bind edit exercise in session buttons and timing chips
+  listEl.querySelectorAll('[data-action="edit-session-ex"]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openEditSessionExerciseModal(el.dataset.instance);
     });
   });
 
@@ -466,9 +533,10 @@ function renderLibraryGrid() {
 
   // Bind delete custom exercise buttons
   grid.querySelectorAll('[data-action="delete-custom-ex"]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      if (confirm('Eliminar este exercício personalizado?')) {
+      const ok = await confirmAction('Eliminar este exercício personalizado da biblioteca?');
+      if (ok) {
         const exId = btn.dataset.id;
         deleteCustomExercise(exId);
         showToast('Exercício eliminado');
@@ -498,10 +566,11 @@ function handleLibCardActivate(card) {
   }
 }
 
-function openAddToSessionPicker(exercise) {
+async function openAddToSessionPicker(exercise) {
   const sessions = listSessions();
   if (sessions.length === 0) {
-    if (confirm(`Não tens sessões de treino. Criar uma nova e adicionar "${exercise.name}"?`)) {
+    const ok = await confirmAction(`Não tens treinos criados. Criar um novo treino e adicionar "${exercise.name}"?`);
+    if (ok) {
       const session = createSession({ name: 'Novo Treino' });
       addExerciseToSession(session, exercise);
       showToast(`Treino criado com "${exercise.name}"`);
@@ -546,10 +615,11 @@ function openAddToSessionPicker(exercise) {
   openModal('modal-picker');
 }
 
-function openAssignSessionToDatePicker(dateStr) {
+async function openAssignSessionToDatePicker(dateStr) {
   const sessions = listSessions();
   if (sessions.length === 0) {
-    if (confirm('Não tens treinos criados. Criar um novo treino para agendar?')) {
+    const ok = await confirmAction('Não tens treinos criados. Criar um novo treino para agendar?');
+    if (ok) {
       const session = createSession({ name: 'Novo Treino', date: dateStr });
       assignSessionToDate(dateStr, session.id);
       showToast('Treino criado e agendado');
@@ -662,8 +732,9 @@ function bindPlayersActions(container, sessionId) {
   });
 
   container.querySelectorAll('[data-action="delete"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (confirm('Remover este jogador?')) {
+    btn.addEventListener('click', async () => {
+      const ok = await confirmAction('Remover este jogador do plantel?');
+      if (ok) {
         deletePlayer(btn.dataset.player);
         renderPlayersView();
         showToast('Jogador removido');
@@ -708,16 +779,28 @@ function bindSessionsView() {
     if (currentSession) printSession(currentSession);
   });
 
-  // Share session
-  document.getElementById('sd-share').addEventListener('click', () => {
+  // Share session with native share or clipboard
+  document.getElementById('sd-share').addEventListener('click', async () => {
     if (currentSession) {
-      const url = buildShareURL(currentSession);
-      navigator.clipboard?.writeText(url).then(() => {
-        showToast('Link copiado!');
-      }).catch(() => {
-        prompt('Copia o link:', url);
-      });
+      const res = await shareSessionNativeOrLink(currentSession);
+      if (res.copied) showToast('Link copiado para a área de transferência!');
+      else if (res.shared) showToast('Treino partilhado!');
+      else if (res.prompt) prompt('Copia o link:', res.url);
     }
+  });
+
+  // Open Edit Session Modal from header & notes section
+  const openEditMeta = () => {
+    if (currentSession) openEditSessionModal(currentSession);
+  };
+  document.getElementById('sd-title-group')?.addEventListener('click', openEditMeta);
+  document.getElementById('sd-edit-meta')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openEditMeta();
+  });
+  document.getElementById('sd-notes-btn-edit')?.addEventListener('click', openEditMeta);
+  document.getElementById('sd-notes-body')?.addEventListener('click', (e) => {
+    if (e.target.closest('.sd-notes-placeholder')) openEditMeta();
   });
 
   // Assign to calendar
@@ -802,6 +885,37 @@ function openEditExerciseModal(exercise) {
   }
 
   openModal('modal-new-exercise');
+}
+
+function openEditSessionModal(session) {
+  if (!session) return;
+  document.getElementById('edit-input-session-name').value = session.name || '';
+  document.getElementById('edit-input-session-date').value = session.date || '';
+  document.getElementById('edit-input-session-notes').value = session.notes || '';
+
+  const currentInt = session.intensity || 'med';
+  document.querySelectorAll('#edit-intensity-selector .intensity-btn').forEach(btn => {
+    const isMatch = btn.dataset.int === currentInt;
+    btn.classList.toggle('active', isMatch);
+    btn.setAttribute('aria-checked', String(isMatch));
+  });
+
+  openModal('modal-edit-session');
+}
+
+function openEditSessionExerciseModal(instanceId) {
+  if (!currentSession) return;
+  const ex = currentSession.exercises.find(e => e.instanceId === instanceId);
+  if (!ex) return;
+
+  document.getElementById('edit-ex-instance-id').value = instanceId;
+  document.getElementById('edit-ex-name').value = ex.name || '';
+  document.getElementById('edit-ex-duration').value = ex.duration || 10;
+  document.getElementById('edit-ex-sets').value = ex.sets || 1;
+  document.getElementById('edit-ex-rest').value = ex.rest || 0;
+  document.getElementById('edit-ex-desc').value = ex.desc || '';
+
+  openModal('modal-edit-session-ex');
 }
 
 // ─── MODALS ────────────────────────────────────────────────────────────────────
@@ -929,6 +1043,68 @@ function bindModals() {
     showToast(`${name} adicionado ao plantel`);
     renderPlayersView();
   });
+
+  // Edit Session form
+  document.getElementById('form-edit-session')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!currentSession) return;
+
+    currentSession.name = document.getElementById('edit-input-session-name').value.trim() || 'Treino';
+    currentSession.date = document.getElementById('edit-input-session-date').value || currentSession.date;
+    currentSession.intensity = document.querySelector('#edit-intensity-selector .intensity-btn.active')?.dataset.int || currentSession.intensity || 'med';
+    currentSession.notes = document.getElementById('edit-input-session-notes').value;
+
+    updateSession(currentSession);
+    closeModal('modal-edit-session');
+    renderSessionDetail();
+    showToast('Treino atualizado com sucesso!');
+  });
+
+  // Intensity buttons in edit session modal
+  document.querySelectorAll('#edit-intensity-selector .intensity-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('#edit-intensity-selector .intensity-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+    });
+  });
+
+  // Edit Exercise in Session form
+  document.getElementById('form-edit-session-ex')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!currentSession) return;
+
+    const instanceId = document.getElementById('edit-ex-instance-id').value;
+    const name = document.getElementById('edit-ex-name').value.trim();
+    const duration = parseInt(document.getElementById('edit-ex-duration').value) || 10;
+    const sets = parseInt(document.getElementById('edit-ex-sets').value) || 1;
+    const rest = parseInt(document.getElementById('edit-ex-rest').value) || 0;
+    const desc = document.getElementById('edit-ex-desc').value;
+
+    updateExerciseInSession(currentSession, instanceId, {
+      name,
+      duration,
+      sets,
+      rest,
+      desc,
+    });
+
+    closeModal('modal-edit-session-ex');
+    currentSession = loadSessionById(currentSession.id);
+    renderSessionDetail();
+    showToast(`"${name}" atualizado no treino!`);
+  });
+
+  // Draw tactical diagram for session exercise modal
+  document.getElementById('btn-draw-session-ex')?.addEventListener('click', () => {
+    const instanceId = document.getElementById('edit-ex-instance-id').value;
+    closeModal('modal-edit-session-ex');
+    if (instanceId) openExerciseDrawing(instanceId);
+  });
 }
 
 function getFocusableEls(container) {
@@ -1045,3 +1221,6 @@ function showToast(msg) {
   clearTimeout(_toastTimeout);
   _toastTimeout = setTimeout(() => toast.classList.remove('show'), 2500);
 }
+
+// Expose toast globally for helper modules like calendar
+window._showAppToast = showToast;
