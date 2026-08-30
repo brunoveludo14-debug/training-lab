@@ -11,6 +11,7 @@ import { getAllPlayers, createPlayer, deletePlayer, togglePresence, setPlayerLoa
 import { exportJSON, importJSON, printSession, buildShareURL, parseShareURL, shareSessionNativeOrLink } from './modules/share.js';
 import { generateId, assignToDate } from './modules/storage.js';
 import { openFieldEditor, getDiagramThumbnailSVG } from './modules/field-editor.js';
+import { initAIAssistant } from './modules/ai-assistant.js';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -88,6 +89,41 @@ document.addEventListener('DOMContentLoaded', () => {
   bindModals();
   bindGlobalActions();
   bindOfflineBadge();
+
+  // ── AI Assistant ──────────────────────────────────────────────────────────
+  initAIAssistant(() => currentSession);
+
+  // Listen for exercises suggested by the AI and add them to the current session
+  document.addEventListener('ai:add-exercise', (e) => {
+    const exData = e.detail;
+    if (!exData || !exData.name) return;
+
+    // Build a proper exercise object
+    const exercise = {
+      id: 'ai_' + generateId(),
+      name: exData.name,
+      category: exData.category || 'tatico',
+      desc: exData.desc || '',
+      duration: Number(exData.duration) || 10,
+      sets: Number(exData.sets) || 1,
+      rest: Number(exData.rest) || 0,
+      players: exData.players || '',
+      diagram: null,
+      custom: true,
+    };
+
+    if (currentSession) {
+      // Add directly to the open session
+      addExerciseToSession(currentSession, exercise);
+      renderSessionDetail(currentSession);
+      showToast(`"${exercise.name}" adicionado à sessão! ✅`);
+    } else {
+      // No session open — save to library instead
+      saveCustomExercise({ ...exercise, id: 'cust_' + generateId() });
+      renderLibrary();
+      showToast(`"${exercise.name}" guardado na Biblioteca! ✅`);
+    }
+  });
 
   // Check for shared session in URL
   const shared = parseShareURL();
