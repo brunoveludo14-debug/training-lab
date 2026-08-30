@@ -55,13 +55,7 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ error: 'Método não permitido' }), { status: 405, headers });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return new Response(
-      JSON.stringify({ error: 'API key não configurada. Adiciona GEMINI_API_KEY nas variáveis de ambiente do Vercel.' }),
-      { status: 503, headers }
-    );
-  }
+  const envKey = process.env.GEMINI_API_KEY || req.headers.get('x-gemini-key');
 
   let body;
   try {
@@ -70,7 +64,15 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ error: 'Body inválido' }), { status: 400, headers });
   }
 
-  const { messages = [], sessionContext = null } = body;
+  const { messages = [], sessionContext = null, apiKey: bodyKey = null } = body;
+  const apiKey = envKey || bodyKey;
+
+  if (!apiKey) {
+    return new Response(
+      JSON.stringify({ error: 'API key não configurada. Podes configurar a chave nas definições do Assistente ou no Vercel (GEMINI_API_KEY).' }),
+      { status: 503, headers }
+    );
+  }
 
   // Build Gemini contents array
   // Gemini uses "user"/"model" roles (not "assistant")

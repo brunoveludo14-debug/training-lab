@@ -2577,6 +2577,32 @@ html, body {
 .ai-send-btn:active { transform: scale(.95); }
 .ai-send-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 
+/* ── Settings Panel ─────────────────────────────────────────────────── */
+.ai-settings-panel {
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  border-radius: 14px;
+  padding: 16px;
+  margin: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-settings-title {
+  font-family: var(--ff-head);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--t1);
+}
+
+.ai-settings-desc {
+  font-size: 11.5px;
+  color: var(--t2);
+  line-height: 1.5;
+  margin: 0;
+}
+
 /* ── Responsive: full-width drawer on mobile ─────────────────────────── */
 @media (max-width: 480px) {
   .ai-drawer { width: 100vw; }
